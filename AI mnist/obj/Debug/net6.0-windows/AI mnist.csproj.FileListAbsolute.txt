@@ -1,0 +1,21 @@
+D:\Projects\csProjects\AI mnist\AI mnist\bin\Debug\net6.0-windows\AI mnist.exe
+D:\Projects\csProjects\AI mnist\AI mnist\bin\Debug\net6.0-windows\AI mnist.deps.json
+D:\Projects\csProjects\AI mnist\AI mnist\bin\Debug\net6.0-windows\AI mnist.runtimeconfig.json
+D:\Projects\csProjects\AI mnist\AI mnist\bin\Debug\net6.0-windows\AI mnist.dll
+D:\Projects\csProjects\AI mnist\AI mnist\bin\Debug\net6.0-windows\AI mnist.pdb
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.csproj.AssemblyReference.cache
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\MainWindow.g.cs
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\App.g.cs
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist_MarkupCompile.cache
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist_MarkupCompile.lref
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\MainWindow.baml
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.g.resources
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.AssemblyInfoInputs.cache
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.AssemblyInfo.cs
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.csproj.CoreCompileInputs.cache
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.dll
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\refint\AI mnist.dll
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.pdb
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\AI mnist.genruntimeconfig.cache
+D:\Projects\csProjects\AI mnist\AI mnist\obj\Debug\net6.0-windows\ref\AI mnist.dll
