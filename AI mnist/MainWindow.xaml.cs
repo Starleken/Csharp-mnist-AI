@@ -28,7 +28,7 @@ namespace AI_mnist
 
         private DigitImage[] digitImages;
         private int hiddenSize = 100;
-        private double alpha = 0.000002;
+        private double alpha = 0.0000000002;
 
         public MainWindow()
         {
@@ -40,75 +40,121 @@ namespace AI_mnist
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
-            
-            WeightLoader loader = new WeightLoader();
+            TrainAsync();
 
-            double[,] weights0_1 = loader.Load("D:\\Weights\\Weights01.mnist");
-            double[,] weights1_2 = loader.Load("D:\\Weights\\Weights12.mnist");
+            //WeightLoader loader = new WeightLoader();
 
-            byte[,] layer0Matrix = digitImages[1].Pixels;
+            //double[,] weights0_1 = loader.Load("D:\\Weights\\Weights01.mnist");
+            //double[,] weights1_2 = loader.Load("D:\\Weights\\Weights12.mnist");
 
-            double[] layer0 = MatrixInVector(layer0Matrix);
+            //byte[,] layer0Matrix = digitImages[1].Pixels;
 
-            double[] layer1 = Dot(layer0, weights0_1);
+            //double[] layer0 = MatrixInVector(layer0Matrix);
 
-            double[] layer2 = Dot(layer1, weights1_2);
+            //double[] layer1 = Dot(layer0, weights0_1);
+            //double[] layer2 = Dot(layer1, weights1_2);
 
-            ResultText.Text = digitImages[615].labelDigit.ToString();
+            //ResultText.Text = digitImages[1].labelDigit.ToString();
 
-            foreach (double y in layer2)
-            {
-                ResultText.Text += $" {y}";
-            }
+            //foreach (double y in layer2)
+            //{
+            //    ResultText.Text += $" {digitImages[1].labelDigit} {y} \n";
+            //}
+        }
+
+        private async void TrainAsync()
+        {
+            await Task.Run(() => Train());
         }
 
         private void Train()
         {
             WeightLoader loader = new WeightLoader();
 
+
+            //Создание весов
             double[,] weights0_1 = loader.Load("D:\\Weights\\Weights01.mnist");
             double[,] weights1_2 = loader.Load("D:\\Weights\\Weights12.mnist");
 
-            for (int i = 0; i < 20000; i++)
+            //Рандомизация весов
+            //for (int row = 0; row < weights0_1.GetLength(0); row++)
+            //{
+            //    for (int col = 0; col < weights0_1.GetLength(1); col++)
+            //    {
+            //        weights0_1[row, col] = NextDouble1(0, 0.001);
+            //    }
+            //}
+
+            //for (int row = 0; row < weights1_2.GetLength(0); row++)
+            //{
+            //    for (int col = 0; col < weights1_2.GetLength(1); col++)
+            //    {
+            //        weights1_2[row, col] = NextDouble1(0, 0.001);
+            //    }
+            //}
+
+            //Начало итераций
+            for (int iteration = 0; iteration < 300; iteration++)
             {
-                byte[,] layer0Matrix = digitImages[i].Pixels;
-
-                double[] layer0 = MatrixInVector(layer0Matrix);
-
-                double[] layer1 = Dot(layer0, weights0_1);
-
-                double[] layer2 = Dot(layer1, weights1_2);
-
                 double error = 0;
-
-                for (int j = 0; j < layer2.Length; j++)
+                for (int i = 0; i < 1000; i++)
                 {
-                    error += digitImages[i].label[j] - layer2[j];
-                }
 
-                double[,] weightDelta_1_2 = new double[100, 10];
+                    //Подсчёт значений
+                    byte[,] layer0Matrix = digitImages[i].Pixels;
 
-                for (int row = 0; row < weightDelta_1_2.GetLength(0); row++)
-                {
-                    for (int col = 0; col < weightDelta_1_2.GetLength(1); col++)
+                    double[] layer0 = MatrixInVector(layer0Matrix);
+
+                    double[] layer1 = Dot(layer0, weights0_1);
+
+                    double[] layer2 = Dot(layer1, weights1_2);
+
+                    //Расчёт ошибки
+                    for (int j = 0; j < layer2.Length; j++)
                     {
-                        weightDelta_1_2[row, col] = layer1[row] * error;
+                        error += digitImages[i].label[j] - layer2[j];
+                    }
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Iteration.Text = $"{i}";
+                    });
+
+                    //Вычисление delta
+                    double[] layer2_delta = new double[layer2.Length];
+                    double[] layer1_delta = new double[layer1.Length];
+
+                    for (int j = 0; j < layer2_delta.Length; j++)
+                    {
+                        layer2_delta[j] = digitImages[i].label[j] - layer2[j];
+                    }
+
+                    layer1_delta = Dot(layer2_delta, Transpose(weights1_2));
+
+                    //Вычисление весов для добавления
+                    double[,] weightDelta_0_1 = Dot2Vectors(layer0, layer1_delta);
+                    double[,] weightDelta_1_2 = Dot2Vectors(layer1, layer2_delta);
+
+                    //Добавление весов
+                    for (int row = 0; row < weights1_2.GetLength(0); row++)
+                    {
+                        for (int col = 0; col < weights1_2.GetLength(1); col++)
+                        {
+                            weights1_2[row, col] += weightDelta_1_2[row, col] * alpha;
+                        }
+                    }
+
+                    for (int row = 0; row < weights0_1.GetLength(0); row++)
+                    {
+                        for (int col = 0; col < weights0_1.GetLength(1); col++)
+                        {
+                            weights0_1[row, col] += weightDelta_0_1[row, col] * alpha;
+                        }
                     }
                 }
-
-                for (int row = 0; row < weights1_2.GetLength(0); row++)
+                this.Dispatcher.Invoke(() =>
                 {
-                    for (int col = 0; col < weights1_2.GetLength(1); col++)
-                    {
-                        weights1_2[row, col] += weightDelta_1_2[row, col] * alpha;
-                    }
-                }
-
-
-                if (i % 1000 == 0)
-                {
-                    ResultText.Text += $"{error}\n";
-                }
+                    ResultText.Text += $"{error} \n";
+                });
             }
 
             WeightSaver weightSaver = new WeightSaver();
@@ -191,6 +237,21 @@ namespace AI_mnist
             return vector;
         }
 
+        public double[,] Transpose(double[,] matrix)
+        {
+            int w = matrix.GetLength(0);
+            int h = matrix.GetLength(1);
+            double[,] result = new double[h, w];
+            for (int i = 0; i < w; i++)
+            {
+                for (int j = 0; j < h; j++)
+                {
+                    result[j, i] = matrix[i, j];
+                }
+            }
+            return result;
+        }
+
         public double[] Dot(double[] vector, double[,] matrix)
         {
             if (vector.Length != matrix.GetLength(0))
@@ -211,6 +272,21 @@ namespace AI_mnist
             }
 
             return result;
+        }
+
+        public double[,] Dot2Vectors(double[] firstVector, double[] secondVector)
+        {
+            double[,] matrix = new double[firstVector.Length, secondVector.Length];
+
+            for (int col = 0; col < secondVector.Length; col++)
+            {
+                for (int row = 0; row < firstVector.Length; row++)
+                {
+                    matrix[row, col] = firstVector[row] * secondVector[col];
+                }
+            }
+
+            return matrix;
         }
 
         public double NextDouble1(double MinValue, double MaxValue)

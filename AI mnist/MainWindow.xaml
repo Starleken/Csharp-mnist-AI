@@ -16,7 +16,7 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" >
             <Button Content="Распознать" Grid.Row="1" FontSize="25" Click="Button_Click" Margin="10"/>
-            <TextBox MinWidth="200" Margin="20, 20"/>
+            <TextBlock Name="Iteration" MinWidth="200" Margin="20, 20"/>
         </StackPanel>
     </Grid>
 </Window>
