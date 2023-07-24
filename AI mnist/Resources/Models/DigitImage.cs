@@ -11,7 +11,7 @@ namespace AI_mnist.Resources.Models
         public int Width { get; set; } // 28
         public int Height { get; set; } // 28
 
-        public byte[,] Pixels { get; set; } // all image pixels
+        public double[,] Pixels { get; set; } // all image pixels
         public double[] label { get; set; } // 0-9
 
         public int labelDigit;
@@ -20,7 +20,16 @@ namespace AI_mnist.Resources.Models
         {
             this.Width = width;
             this.Height = height;
-            this.Pixels = Pixels;
+
+            this.Pixels = new double[width, height];
+
+            for (int i = 0; i < Pixels.GetLength(0); i++)
+            {
+                for (int j = 0; j < Pixels.GetLength(1); j++)
+                {
+                    this.Pixels[i, j] = Convert.ToDouble(Pixels[i, j]) / 255;
+                }
+            }
 
             switch (labelDigit)
             {
