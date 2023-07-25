@@ -28,13 +28,23 @@ namespace AI_mnist
 
         private DigitImage[] digitImages;
         private int hiddenSize = 40;
-        private double alpha = 0.01;
+        private double alpha = 0.05;
 
         public MainWindow()
         {
             InitializeComponent();
 
             digitImages = LoadData(trainImagesPath, trainLabelsPath);
+        }
+
+        private double Sigmation(double output)
+        {
+            return 1 / (1 + Math.Exp(-output));
+        }
+
+        private double Sigmation2Deruv(double output)
+        {
+            return output * (1 - output);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -49,8 +59,12 @@ namespace AI_mnist
             double[,] weights0_1 = loader.Load("D:\\Weights\\Weights01.mnist");
             double[,] weights1_2 = loader.Load("D:\\Weights\\Weights12.mnist");
 
+            //string pathString = PathTextBox.Text;
+            //byte[,] pixels = LoadImage(pathString);
+            //DigitImage image = new DigitImage(28, 28, pixels, 1);
+
             float correct = 0;
-            for (int i = 1000; i < 2000; i++)
+            for (int i = 1000; i < 10000; i++)
             {
                 double[] result = digitImages[i].label;
                 double[,] layer0Matrix = digitImages[i].Pixels;
@@ -59,16 +73,20 @@ namespace AI_mnist
 
                 double[] layer1 = Dot(layer0, weights0_1);
 
+                for (int j = 0; j < layer1.Length; j++)
+                {
+                    layer1[j] = Sigmation(layer1[j]);
+                }
+
                 double[] layer2 = Dot(layer1, weights1_2);
 
                 if (GetMaxIndex(layer2) == GetMaxIndex(result))
                 {
                     correct += 1;
                 }
-            }
 
-            ResultText.Text = (correct / 1000).ToString();
-            
+                ResultText.Text = (correct / 9000).ToString();
+            }
         }
 
         private async void TrainAsync()
@@ -114,6 +132,11 @@ namespace AI_mnist
 
                     double[] layer1 = Dot(layer0, weights0_1);
 
+                    for (int j = 0; j < layer1.Length; j++)
+                    {
+                        layer1[j] = Sigmation(layer1[j]);
+                    }
+
                     double[] layer2 = Dot(layer1, weights1_2);
 
                     //Расчёт ошибки
@@ -141,6 +164,11 @@ namespace AI_mnist
 
 
                     layer1_delta = Dot(layer2_delta, Transpose(weights1_2));
+
+                    for (int j = 0; j < layer1_delta.Length; j++)
+                    {
+                        layer1_delta[j] *= Sigmation2Deruv(layer1[j]);
+                    }
 
                     //Вычисление весов для добавления
                     double[,] weightDelta_0_1 = Dot2Vectors(layer0, layer1_delta);
@@ -315,6 +343,30 @@ namespace AI_mnist
             }
 
             return matrix;
+        }
+
+        public static byte[,] LoadImage(string path)
+        {
+            Uri myUri = new Uri("C:\\Users\\SystemX\\Pictures\\14.bmp", UriKind.RelativeOrAbsolute);
+            BmpBitmapDecoder decoder = new BmpBitmapDecoder(myUri, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+            BitmapSource bs = decoder.Frames[0];
+            //Конвертируем изображение в оттенки серого
+            FormatConvertedBitmap fcb = new FormatConvertedBitmap(bs, PixelFormats.Gray8, BitmapPalettes.BlackAndWhite, 1);
+            bs = fcb;
+            byte[] arr = new byte[(int)(bs.Width * bs.Height)];
+            //Извлекаем пиксели
+            bs.CopyPixels(arr, (int)(8 * bs.Width) / 8, 0);
+            int count = 0;
+            byte[,] img = new byte[(int)bs.Height, (int)bs.Width];
+            //формируем двумерный массив
+            for (int i = 0; i < bs.Height; ++i)
+            {
+                for (int j = 0; j < bs.Width; ++j)
+                {
+                    img[i, j] = arr[count++];
+                }
+            }
+            return img;
         }
     }
 }
