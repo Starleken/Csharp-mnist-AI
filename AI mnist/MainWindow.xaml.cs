@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -27,7 +28,7 @@ namespace AI_mnist
         private string trainLabelsPath = "D:\\Projects\\MNIST\\train-labels.idx1-ubyte";
 
         private DigitImage[] digitImages;
-        private int hiddenSize = 40;
+        private int hiddenSize = 100;
         private double alpha = 0.05;
 
         public MainWindow()
@@ -37,14 +38,25 @@ namespace AI_mnist
             digitImages = LoadData(trainImagesPath, trainLabelsPath);
         }
 
-        private double Sigmation(double output)
+        private double Sigmoid(double output)
         {
             return 1 / (1 + Math.Exp(-output));
         }
 
-        private double Sigmation2Deruv(double output)
+        private double Sigmoid2Deriv(double output)
         {
             return output * (1 - output);
+        }
+
+        private double[] SoftMax(double[] x)
+        {
+            var x_exp = x.Select(Math.Exp);
+
+            var sum_z_exp = x_exp.Sum();
+
+            var softmax = x_exp.Select(i => i / sum_z_exp).ToArray<Double>();
+
+            return softmax;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -59,34 +71,38 @@ namespace AI_mnist
             double[,] weights0_1 = loader.Load("D:\\Weights\\Weights01.mnist");
             double[,] weights1_2 = loader.Load("D:\\Weights\\Weights12.mnist");
 
-            //string pathString = PathTextBox.Text;
-            //byte[,] pixels = LoadImage(pathString);
-            //DigitImage image = new DigitImage(28, 28, pixels, 1);
+            OpenFileDialog openFileDlg = new OpenFileDialog();
+            var dialogResult = openFileDlg.ShowDialog();
 
-            float correct = 0;
-            for (int i = 1000; i < 10000; i++)
+            string path = "";
+            if (dialogResult == System.Windows.Forms.DialogResult.OK)
             {
-                double[] result = digitImages[i].label;
-                double[,] layer0Matrix = digitImages[i].Pixels;
-
-                double[] layer0 = MatrixInVector(layer0Matrix);
-
-                double[] layer1 = Dot(layer0, weights0_1);
-
-                for (int j = 0; j < layer1.Length; j++)
-                {
-                    layer1[j] = Sigmation(layer1[j]);
-                }
-
-                double[] layer2 = Dot(layer1, weights1_2);
-
-                if (GetMaxIndex(layer2) == GetMaxIndex(result))
-                {
-                    correct += 1;
-                }
-
-                ResultText.Text = (correct / 9000).ToString();
+                path = openFileDlg.FileName;
             }
+            else
+            {
+                return;
+            }
+
+            byte[,] pixels = LoadImage(path);
+            DigitImage image = new DigitImage(28, 28, pixels, 1);
+
+            double[] result = image.label;
+            double[,] layer0Matrix = image.Pixels;
+
+            double[] layer0 = MatrixInVector(layer0Matrix);
+
+            double[] layer1 = Dot(layer0, weights0_1);
+
+            for (int j = 0; j < layer1.Length; j++)
+            {
+                layer1[j] = Sigmoid(layer1[j]);
+            }
+
+            double[] layer2 = Dot(layer1, weights1_2);
+
+            ResultText.Text = GetMaxIndex(layer2).ToString();
+            
         }
 
         private async void TrainAsync()
@@ -117,11 +133,11 @@ namespace AI_mnist
             }
 
             //Начало итераций
-            for (int iteration = 0; iteration < 350; iteration++)
+            for (int iteration = 0; iteration < 20; iteration++)
             {
                 double error = 0;
                 float correct = 0;
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 2000; i++)
                 {
 
                     //Подсчёт значений
@@ -134,7 +150,7 @@ namespace AI_mnist
 
                     for (int j = 0; j < layer1.Length; j++)
                     {
-                        layer1[j] = Sigmation(layer1[j]);
+                        layer1[j] = Sigmoid(layer1[j]);
                     }
 
                     double[] layer2 = Dot(layer1, weights1_2);
@@ -150,7 +166,7 @@ namespace AI_mnist
                     }
                     this.Dispatcher.Invoke(() =>
                     {
-                        Iteration.Text = $"Iteration: {iteration}, image: {i}";
+                        IterationTextBlock.Text = $"Iteration: {iteration}, image: {i}";
                     });
 
                     //Вычисление delta
@@ -167,7 +183,7 @@ namespace AI_mnist
 
                     for (int j = 0; j < layer1_delta.Length; j++)
                     {
-                        layer1_delta[j] *= Sigmation2Deruv(layer1[j]);
+                        layer1_delta[j] *= Sigmoid2Deriv(layer1[j]);
                     }
 
                     //Вычисление весов для добавления
@@ -193,7 +209,7 @@ namespace AI_mnist
                 }
                 this.Dispatcher.Invoke(() =>
                 {
-                    ResultText.Text = $"{error / 1000}     {correct / 1000}";
+                    CorrectionTextBlock.Text = $"{error / 1000}     {correct / 1000}";
                 });
             }
 
@@ -345,9 +361,9 @@ namespace AI_mnist
             return matrix;
         }
 
-        public static byte[,] LoadImage(string path)
+        public byte[,] LoadImage(string path)
         {
-            Uri myUri = new Uri("C:\\Users\\SystemX\\Pictures\\14.bmp", UriKind.RelativeOrAbsolute);
+            Uri myUri = new Uri(path, UriKind.RelativeOrAbsolute);
             BmpBitmapDecoder decoder = new BmpBitmapDecoder(myUri, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
             BitmapSource bs = decoder.Frames[0];
             //Конвертируем изображение в оттенки серого
@@ -366,7 +382,15 @@ namespace AI_mnist
                     img[i, j] = arr[count++];
                 }
             }
+
+            DigitImage.Source = bs;
+
             return img;
+        }
+
+        private void TrainButton_Click(object sender, RoutedEventArgs e)
+        {
+            TrainAsync();
         }
     }
 }
